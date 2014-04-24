@@ -63,20 +63,21 @@ private object NormProcessor {
     val values = ListBuffer[Any]()
     val rowValuesMap = row.asMap
 
-//    val normalizedRowValuesMap = scala.collection.mutable.Map[String, Any]()
+    val normalizedRowValuesMap = scala.collection.mutable.LinkedHashMap[String, Any]()
 
-//    rowValuesMap.toIndexedSeq.foreach[Unit] { (entry) =>
-//      normalizedRowValuesMap += entry._1.toLowerCase -> rowValuesMap.get(entry._1).get
-//    }
-//
-//    println("!!!!!!!!!!!!!!!!!!")
-//    println(rowValuesMap)
-//    println(normalizedRowValuesMap)
+    rowValuesMap.toIndexedSeq.foreach[Unit] { (entry) =>
+      println(entry._1.toLowerCase)
+      normalizedRowValuesMap += entry._1.toLowerCase -> rowValuesMap.get(entry._1).get
+    }
 
     val prefix = NormProcessor.tableName[T](tableName).toLowerCase
     properties.foreach { property =>
-      val propertyOption = rowValuesMap.get(s"${prefix}.${property._1}".toLowerCase)
-      values += (if (property._2 <:< typeOf[Option[Any]]) propertyOption else propertyOption.get)
+      normalizedRowValuesMap.get(s"${prefix}.${property._1}".toLowerCase) match {
+        case Some(a: Option[Any]) if property._2 <:< typeOf[Option[Any]] => values += a
+        case Some(a: Option[Any]) => values += a.get
+        case Some(a: Any) => values += a
+        case None => throw new RuntimeException
+      }
     }
     values
   }
