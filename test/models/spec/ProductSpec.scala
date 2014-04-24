@@ -3,7 +3,7 @@ package models.spec
 import org.specs2.mutable.Specification
 import play.api.test.{FakeApplication, WithApplication}
 import models.Product
-
+import java.math.BigDecimal
 /**
  * Created by ricardo on 4/22/14.
  */
@@ -15,18 +15,22 @@ class ProductSpec extends Specification {
 
       val productName        = "ProductName"
       val productDescription = Some("Text")
+      val price              = new BigDecimal("10.00")
 
-      val id = Product.create(
+      val optionId = Product.create(
         Map(
-          "name"        ->  "ProductName",
-          "description" ->  Some("Text")
+          "name"        ->  productName,
+          "description" ->  productDescription,
+          "price"       ->  price.toString,
+          "taxiRange"   ->  2l
         )
       )
 
-      val product = Product.findByProperty("id", id.get).head
-      product.id          must equalTo(id.get)
+      val product = Product.find(optionId.get)
+      product.id          must equalTo(optionId.get)
       product.name        must equalTo(productName)
       product.description must equalTo(productDescription)
+      product.price       must equalTo(price)
     }
 
   }

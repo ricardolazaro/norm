@@ -66,7 +66,6 @@ private object NormProcessor {
     val normalizedRowValuesMap = scala.collection.mutable.LinkedHashMap[String, Any]()
 
     rowValuesMap.toIndexedSeq.foreach[Unit] { (entry) =>
-      println(entry._1.toLowerCase)
       normalizedRowValuesMap += entry._1.toLowerCase -> rowValuesMap.get(entry._1).get
     }
 
@@ -151,8 +150,8 @@ class NormCompanion[T: TypeTag](tableName: Option[String] = None) {
    * @return
    *   the do for the new database entry
    */
-  def create(attributes: Map[Any, ParameterValue[_]]): Option[Long] = {
-    val properties = (NormProcessor.constructorProperties[T].map(_._1) diff List(NormProcessor.id))
+  def create(attributes: Map[String, ParameterValue[_]]): Option[Long] = {
+    val properties = (attributes.keySet diff Set(NormProcessor.id))
     val values     = properties.map(p => s"{${p}}")
 
     val creationBuilder = new StringBuilder(s"insert into ${NormProcessor.tableName[T](tableName)}")
@@ -183,4 +182,9 @@ class NormCompanion[T: TypeTag](tableName: Option[String] = None) {
     }
     result.toList
   }
+
+  def find(id: Long) = findByProperty(NormProcessor.id, id).head
+
+  def findOption(id: Long) = findByProperty(NormProcessor.id, id).headOption
+
 }
