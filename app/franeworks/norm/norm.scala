@@ -151,8 +151,8 @@ class NormCompanion[T: TypeTag](tableName: Option[String] = None) {
    *   the do for the new database entry
    */
   def create(attributes: Map[String, ParameterValue[_]]): Option[Long] = {
-    val properties = (attributes.keySet diff Set(NormProcessor.id))
-    val values     = properties.map(p => s"{${p}}")
+    val properties = ((attributes.keySet diff Set(NormProcessor.id))).toArray
+    val values     = properties.seq.map(p => s"{${p}}")
 
     val creationBuilder = new StringBuilder(s"insert into ${NormProcessor.tableName[T](tableName)}")
     creationBuilder.append(s"(${properties.mkString(",")})")
@@ -160,6 +160,7 @@ class NormCompanion[T: TypeTag](tableName: Option[String] = None) {
     creationBuilder.append(s"(${values.mkString(",")})")
     val forCreation = creationBuilder.toString
 
+    println(forCreation)
     DB.withConnection { implicit c =>
       SQL(forCreation).on(attributes.toSeq: _*).executeInsert()
     }

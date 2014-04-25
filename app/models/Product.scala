@@ -11,7 +11,8 @@ case class Product(
   name:        String,
   description: Option[String],
   price:       BigDecimal,
-  taxiRange:   Int) extends Norm[Product]
+  taxRange:    Int,
+  inStock:     Boolean) extends Norm[Product]
 
 
 object Product extends NormCompanion[Product]

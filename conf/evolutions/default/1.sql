@@ -5,7 +5,8 @@ CREATE TABLE PUBLIC.Products (
     name        varchar(25),
     description varchar(100),
     price       decimal,
-    taxiRange   integer,
+    taxRange    integer,
+    inStock     boolean,
     PRIMARY KEY (id),
 );
 

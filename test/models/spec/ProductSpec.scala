@@ -16,13 +16,15 @@ class ProductSpec extends Specification {
       val productName        = "ProductName"
       val productDescription = Some("Text")
       val price              = new BigDecimal("10.00")
+      val taxRange           = 2
 
       val optionId = Product.create(
         Map(
           "name"        ->  productName,
           "description" ->  productDescription,
-          "price"       ->  price.toString,
-          "taxiRange"   ->  2l
+          "price"       ->  price,
+          "taxRange"    ->  taxRange,
+          "inStock"     ->  true
         )
       )
 
@@ -31,6 +33,8 @@ class ProductSpec extends Specification {
       product.name        must equalTo(productName)
       product.description must equalTo(productDescription)
       product.price       must equalTo(price)
+      product.taxRange    must equalTo(taxRange)
+      product.inStock     must beTrue
     }
 
   }
