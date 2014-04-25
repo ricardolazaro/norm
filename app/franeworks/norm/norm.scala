@@ -11,7 +11,7 @@ import scala.collection.mutable.ListBuffer
  */
 
 /**
- * Utility Methods to retrive class metadata
+ * Utility Methods to retrieve class metadata
  */
 private object NormProcessor {
 
