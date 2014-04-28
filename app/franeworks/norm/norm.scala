@@ -119,9 +119,36 @@ private object NormProcessor {
 
 class Norm[T: TypeTag](tableName: Option[String] = None) {
 
-  //TODO
-  //  def update
+  def update() = {
+    val classProperties = NormProcessor.constructorProperties[T].map(_._1).toSet
+    val updatableProperties = (classProperties diff Set(NormProcessor.id)).toArray
+    val defaultAttributes = scala.collection.mutable.Map[String, ParameterValue[_]]()
 
+    val rm = runtimeMirror(this.getClass.getClassLoader)
+    val tpe = typeOf[T]
+
+    val updateContent = ListBuffer[String]()
+    updatableProperties.foreach { prop =>
+      updateContent += s"${prop}={${prop}}"
+      val propTerm = tpe.declaration(newTermName(prop)).asTerm
+      defaultAttributes += prop -> rm.reflect(this).reflectField(propTerm).get
+    }
+
+    val idTerm = tpe.declaration(newTermName(NormProcessor.id)).asTerm
+    defaultAttributes += NormProcessor.id -> rm.reflect(this).reflectField(idTerm).get
+
+    val updateBuilder = new StringBuilder(s"update ${NormProcessor.tableName[T](tableName)}")
+    updateBuilder.append(" set ")
+    updateBuilder.append(updateContent.mkString(","))
+    updateBuilder.append(s" where ${NormProcessor.id}={${NormProcessor.id}}")
+    val forUpdate = updateBuilder.mkString
+
+    DB.withConnection { implicit c =>
+      SQL(forUpdate).on(defaultAttributes.toSeq: _*).executeUpdate()
+    }
+  }
+
+  //TODO
   //  def refresh
 
   //  def delete
