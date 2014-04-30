@@ -119,16 +119,17 @@ private object NormProcessor {
 
 class Norm[T: TypeTag](tableName: Option[String] = None) {
 
-  def update() = {
-    val classProperties = NormProcessor.constructorProperties[T].map(_._1).toSet
-    val updatableProperties = (classProperties diff Set(NormProcessor.id)).toArray
+  def update(attributes: Map[String, ParameterValue[_]] = Map()) = {
+
+    val providedProperties = if (attributes.isEmpty) NormProcessor.constructorProperties[T].map(_._1).toSet else attributes.keys.toSet
+    val propertiesToUpdate = (providedProperties diff Set(NormProcessor.id)).toArray
     val defaultAttributes = scala.collection.mutable.Map[String, ParameterValue[_]]()
 
-    val rm = runtimeMirror(this.getClass.getClassLoader)
+    val rm  = runtimeMirror(this.getClass.getClassLoader)
     val tpe = typeOf[T]
 
     val updateContent = ListBuffer[String]()
-    updatableProperties.foreach { prop =>
+    propertiesToUpdate.foreach { prop =>
       updateContent += s"${prop}={${prop}}"
       val propTerm = tpe.declaration(newTermName(prop)).asTerm
       defaultAttributes += prop -> rm.reflect(this).reflectField(propTerm).get
@@ -187,7 +188,6 @@ class NormCompanion[T: TypeTag](tableName: Option[String] = None) {
     creationBuilder.append(s"(${values.mkString(",")})")
     val forCreation = creationBuilder.toString
 
-    println(forCreation)
     DB.withConnection { implicit c =>
       SQL(forCreation).on(attributes.toSeq: _*).executeInsert()
     }
