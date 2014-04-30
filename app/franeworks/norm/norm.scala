@@ -119,8 +119,15 @@ private object NormProcessor {
 
 class Norm[T: TypeTag](tableName: Option[String] = None) {
 
-  def update(attributes: Map[String, ParameterValue[_]] = Map()) = {
 
+  /**
+   * Updates a database entry
+   *
+   * @param attributes atrributes to update, default is empty. if empty, updates all fields
+   *                   in the model
+   * @return (TODO) number of the affected rows
+   */
+  def update(attributes: Map[String, ParameterValue[_]] = Map()) = {
     val providedProperties = if (attributes.isEmpty) NormProcessor.constructorProperties[T].map(_._1).toSet else attributes.keys.toSet
     val propertiesToUpdate = (providedProperties diff Set(NormProcessor.id)).toArray
     val defaultAttributes = scala.collection.mutable.Map[String, ParameterValue[_]]()
