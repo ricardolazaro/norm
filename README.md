@@ -1,7 +1,7 @@
 Norm
 =======
 
-Norm is an utility built on top of Anorm. It's not an ORM with a lot of complex things.
+Norm is an utility built on top of Anorm to be used in playframework scala projects. It's not a complete ORM with a lot of complex things.
 
 Why
 ===============
@@ -23,7 +23,7 @@ Getting Start
 
 1.  Add Norm to your project:
 
-This project is not published yet, so just copy the file [norm.scala](https://github.com/ricardolazaro/norm/blob/master/app/franeworks/norm/norm.scala) norm.scala to your project.
+This project is not published yet, so just copy the file [norm.scala](https://github.com/ricardolazaro/norm/blob/master/app/franeworks/norm/norm.scala) to your project.
 
 2. Create a model class extending Norm:
 
@@ -92,3 +92,4 @@ This project is not published yet, so just copy the file [norm.scala](https://gi
   val products = Product.findByProperty("name", someName)
   ```
 
+More details see the [tests](https://github.com/ricardolazaro/norm/blob/master/test/models/spec/ProductSpec.scala)  
