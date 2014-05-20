@@ -22,7 +22,7 @@ private object NormProcessor {
    * @return
    *  (PropertyName -> PropertyType)
    **/
-  def constructorProperties[T: TypeTag] = {
+  def constructorProperties[T: TypeTag] = synchronized {
     val tpe = typeOf[T]
     val constructor = tpe.declaration(nme.CONSTRUCTOR).asMethod
     constructor.paramss.reduceLeft(_ ++ _).map {
@@ -139,7 +139,7 @@ class Norm[T: TypeTag](tableName: Option[String] = None) {
     propertiesToUpdate.foreach { prop =>
       updateContent += s"${prop}={${prop}}"
       val propTerm = tpe.declaration(newTermName(prop)).asTerm
-      defaultAttributes += prop -> rm.reflect(this).reflectField(propTerm).get
+      defaultAttributes += prop -> (if (attributes.isEmpty) rm.reflect(this).reflectField(propTerm).get else attributes.get(prop).get)
     }
 
     val idTerm = tpe.declaration(newTermName(NormProcessor.id)).asTerm
