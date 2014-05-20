@@ -151,7 +151,51 @@ class ProductSpec extends Specification {
       updatedProduct.taxRange    must equalTo(taxRange)
       updatedProduct.inStock     must equalTo(inStock)
     }
+  }
 
+  "Product.foreach" should {
+
+    "perform action in all entries" in new WithApplication(FakeApplication()) {
+
+      val productName1    = "ProductName1"
+      val price1          = new BigDecimal("11.00")
+      val taxRange1       = 3
+      val description1    = Some("description")
+      val inStock1        = false
+
+      val productName2    = "ProductName2"
+      val price2          = new BigDecimal("11.00")
+      val taxRange2       = 3
+      val description2    = Some("description")
+      val inStock2        = false
+
+      val optionId1 = Product.create(
+        Map(
+          "name"        ->  productName1,
+          "price"       ->  price1,
+          "taxRange"    ->  taxRange1,
+          "description" ->  taxRange1,
+          "inStock"     ->  inStock1
+        )
+      )
+      val optionId2 = Product.create(
+        Map(
+          "name"        ->  productName2,
+          "price"       ->  price2,
+          "taxRange"    ->  taxRange2,
+          "description" ->  taxRange2,
+          "inStock"     ->  inStock2
+        )
+      )
+
+      Product.foreach { p =>
+        p.name = "nameUpdated"
+        p.update()
+      }
+
+      Product.find(optionId1.get).name must equalTo("nameUpdated")
+      Product.find(optionId2.get).name must equalTo("nameUpdated")
+    }
   }
 
 

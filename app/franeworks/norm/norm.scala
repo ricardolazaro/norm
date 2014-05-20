@@ -218,6 +218,18 @@ class NormCompanion[T: TypeTag](tableName: Option[String] = None) {
     result.toList
   }
 
+  /**
+   * Perform a action for each entry
+   * @param f
+   * @return
+   */
+  def foreach(f: T => Unit) = DB.withConnection { implicit c =>
+    val forSelect = s"select * from ${NormProcessor.tableName[T](tableName)}"
+    SQL(forSelect).apply().foreach {
+      case r:Row => f(NormProcessor.instance[T](r, tableName).asInstanceOf[T])
+    }
+  }
+
   def find(id: Long) = findByProperty(NormProcessor.id, id).head
 
   def findOption(id: Long) = findByProperty(NormProcessor.id, id).headOption
