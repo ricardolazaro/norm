@@ -1,7 +1,7 @@
 package models
 
 import java.math.BigDecimal
-import models.frameworks.{NormCompanion, Norm}
+import norm.{NormCompanion, Norm}
 
 
 /**

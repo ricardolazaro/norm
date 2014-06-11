@@ -1,4 +1,4 @@
-package models.frameworks
+package norm
 
 import scala.reflect.runtime.universe._
 import play.api.db.DB

@@ -6,6 +6,8 @@ libraryDependencies ++= Seq(
   jdbc,
   anorm,
   cache
-)     
+)
+
+unmanagedSourceDirectories in Compile += baseDirectory.value / "../src"
 
 play.Project.playScalaSettings
