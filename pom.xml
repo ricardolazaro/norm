@@ -2,10 +2,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>norm</groupId>
+    <groupId>com.norm</groupId>
     <artifactId>norm_2.10</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 
     <name>Norm</name>
     <url>https://github.com/ricardolazaro/norm</url>
@@ -23,26 +23,31 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
+            <scope>provided</scope>
             <version>2.10.3</version>
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-reflect</artifactId>
+            <scope>provided</scope>
             <version>2.10.3</version>
         </dependency>
         <dependency>
             <groupId>play</groupId>
             <artifactId>anorm_2.9.3</artifactId>
+            <scope>provided</scope>
             <version>2.1.1</version>
         </dependency>
         <dependency>
             <groupId>play</groupId>
             <artifactId>play-java-jdbc_2.10</artifactId>
+            <scope>provided</scope>
             <version>2.1.5</version>
         </dependency>
         <dependency>
             <groupId>play</groupId>
             <artifactId>play-java-jdbc_2.10</artifactId>
+            <scope>provided</scope>
             <version>2.1.5</version>
         </dependency>
     </dependencies>
