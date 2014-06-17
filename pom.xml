@@ -5,7 +5,7 @@
     <groupId>norm</groupId>
     <artifactId>norm_2.10</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <name>Norm</name>
     <url>https://github.com/ricardolazaro/norm</url>

@@ -39,9 +39,9 @@ private object NormProcessor {
    */
   private def classConstructorFor[T: TypeTag] = {
     val tpe = typeOf[T]
-    val m1 = runtimeMirror(getClass.getClassLoader)
+    val mirror = runtimeMirror(Thread.currentThread().getContextClassLoader)
     val classType = tpe.typeSymbol.asClass
-    val cm = m1.reflectClass(classType)
+    val cm = mirror.reflectClass(classType)
     val ctor = tpe.declaration(nme.CONSTRUCTOR).asMethod
     cm.reflectConstructor(ctor)
   }
