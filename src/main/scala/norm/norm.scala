@@ -25,8 +25,8 @@ private object NormProcessor {
   def constructorProperties[T: TypeTag] = synchronized {
     val tpe = typeOf[T]
     val constructor = tpe.declaration(nme.CONSTRUCTOR).asMethod
-    constructor.paramss.reduceLeft(_ ++ _).map {
-      sym => sym.name.toString -> tpe.member(sym.name).asMethod.returnType
+    constructor.paramss.flatten.map { sym =>
+      sym.name.toString -> tpe.member(sym.name).asMethod.returnType
     }
   }
 
@@ -132,7 +132,7 @@ class Norm[T: TypeTag](tableName: Option[String] = None) {
     val propertiesToUpdate = (providedProperties diff Set(NormProcessor.id)).toArray
     val defaultAttributes = scala.collection.mutable.Map[String, ParameterValue[_]]()
 
-    val rm  = runtimeMirror(this.getClass.getClassLoader)
+    val rm  = runtimeMirror(Thread.currentThread().getContextClassLoader)
     val tpe = typeOf[T]
 
     val updateContent = ListBuffer[String]()
