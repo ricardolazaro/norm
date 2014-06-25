@@ -1,6 +1,13 @@
+import play.PlayScala
+
 name := "sample"
 
 version := "1.0-SNAPSHOT"
+
+lazy val root = (project in file(".")).enablePlugins(PlayScala)
+
+scalaVersion := "2.11.1"
+
 
 libraryDependencies ++= Seq(
   jdbc,
@@ -8,6 +15,6 @@ libraryDependencies ++= Seq(
   cache
 )
 
-unmanagedSourceDirectories in Compile += baseDirectory.value / "../src"
+libraryDependencies += "org.postgresql" % "postgresql" % "9.3-1100-jdbc41"
 
-play.Project.playScalaSettings
+unmanagedSourceDirectories in Compile += baseDirectory.value / "../src"

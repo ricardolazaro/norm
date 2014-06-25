@@ -5,6 +5,9 @@ import play.api.db.DB
 import anorm._
 import play.api.Play.current
 import scala.collection.mutable.ListBuffer
+import anorm.features.anyToStatement
+
+
 
 /**
  * Created by ricardo on 4/18/14.
@@ -127,12 +130,12 @@ class Norm[T: TypeTag](tableName: Option[String] = None) {
    *                   in the model
    * @return (TODO) number of the affected rows
    */
-  def update(attributes: Map[String, ParameterValue[_]] = Map()) = {
+  def update(attributes: Map[String, Any] = Map()) = {
     val providedProperties = if (attributes.isEmpty) NormProcessor.constructorProperties[T].map(_._1).toSet else attributes.keys.toSet
     val propertiesToUpdate = (providedProperties diff Set(NormProcessor.id)).toArray
-    val defaultAttributes = scala.collection.mutable.Map[String, ParameterValue[_]]()
+    val defaultAttributes = scala.collection.mutable.Map[String, Any]()
 
-    val rm  = runtimeMirror(Thread.currentThread().getContextClassLoader)
+    val rm  = runtimeMirror(this.getClass.getClassLoader)
     val tpe = typeOf[T]
 
     val updateContent = ListBuffer[String]()
@@ -152,7 +155,43 @@ class Norm[T: TypeTag](tableName: Option[String] = None) {
     val forUpdate = updateBuilder.mkString
 
     DB.withConnection { implicit c =>
-      SQL(forUpdate).on(defaultAttributes.toSeq: _*).executeUpdate()
+      val unsafeSeq = defaultAttributes.map{ kv => NamedParameter(kv._1, kv._2) }.toSeq
+      SQL(forUpdate).on(unsafeSeq:_*).executeUpdate()
+    }
+  }
+
+
+
+  def update2(attributes: Seq[NamedParameter] = Seq()) = {
+//    val providedProperties = if (attributes.isEmpty) NormProcessor.constructorProperties[T].map(_._1).toSet else attributes.map(_.name).toSet
+//    val propertiesToUpdate = (providedProperties diff Set(NormProcessor.id)).toArray
+//    var defaultAttributes = Seq[NamedParameter]()
+
+    val rm  = runtimeMirror(this.getClass.getClassLoader)
+    val tpe = typeOf[T]
+
+    val updateContent = ListBuffer[String]()
+    attributes.foreach { prop =>
+      updateContent += s"${prop.name}={${prop.name}}"
+//      val propTerm = tpe.declaration(newTermName(prop)).asTerm
+//      val propertyValue:Any = if (attributes.isEmpty) rm.reflect(this).reflectField(propTerm).get else attributes.find(_.name == prop).get
+//      val param: NamedParameter = (prop -> anorm.Object(propertyValue))
+//      defaultAttributes = defaultAttributes :+ param
+    }
+
+    val idTerm = tpe.declaration(newTermName(NormProcessor.id)).asTerm
+    val propertyValue:Any = rm.reflect(this).reflectField(idTerm).get
+    val param: NamedParameter = (NormProcessor.id -> propertyValue)
+    val defaultAttributes = attributes :+ param
+
+    val updateBuilder = new StringBuilder(s"update ${NormProcessor.tableName[T](tableName)}")
+    updateBuilder.append(" set ")
+    updateBuilder.append(updateContent.mkString(","))
+    updateBuilder.append(s" where ${NormProcessor.id}={${NormProcessor.id}}")
+    val forUpdate = updateBuilder.mkString
+
+    DB.withConnection { implicit c =>
+      SQL(forUpdate).on(defaultAttributes:_*).executeUpdate()
     }
   }
 
@@ -185,7 +224,7 @@ class NormCompanion[T: TypeTag](tableName: Option[String] = None) {
    * @return
    *   the do for the new database entry
    */
-  def create(attributes: Map[String, ParameterValue[_]]): Option[Long] = {
+  def create(attributes: Map[String, Any]): Option[Long] = {
     val properties = ((attributes.keySet diff Set(NormProcessor.id))).toArray
     val values     = properties.seq.map(p => s"{${p}}")
 
@@ -195,8 +234,28 @@ class NormCompanion[T: TypeTag](tableName: Option[String] = None) {
     creationBuilder.append(s"(${values.mkString(",")})")
     val forCreation = creationBuilder.toString
 
+
     DB.withConnection { implicit c =>
-      SQL(forCreation).on(attributes.toSeq: _*).executeInsert()
+      val unsafeSeq = attributes.map{ kv => NamedParameter(kv._1, kv._2) }.toSeq
+      println(forCreation)
+      println(unsafeSeq)
+      println("-------")
+      SQL(forCreation).on(unsafeSeq: _*).executeInsert()
+    }
+  }
+
+  def create2(attributes: Seq[NamedParameter]): Option[Long] = {
+    val properties = attributes.map(_.name)
+    val values     = properties.seq.map(p => s"{${p}}")
+
+    val creationBuilder = new StringBuilder(s"insert into ${NormProcessor.tableName[T](tableName)}")
+    creationBuilder.append(s"(${properties.mkString(",")})")
+    creationBuilder.append(" values ")
+    creationBuilder.append(s"(${values.mkString(",")})")
+    val forCreation = creationBuilder.toString
+
+    DB.withConnection { implicit c =>
+      SQL(forCreation).on(attributes: _*).executeInsert()
     }
   }
 
