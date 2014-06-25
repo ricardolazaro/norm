@@ -27,8 +27,8 @@ private object NormProcessor {
    **/
   def constructorProperties[T: TypeTag] = synchronized {
     val tpe = typeOf[T]
-    val constructor = tpe.declaration(nme.CONSTRUCTOR).asMethod
-    constructor.paramss.flatten.map { sym =>
+    val constructor = tpe.decl(termNames.CONSTRUCTOR).asMethod
+    constructor.paramLists.flatten.map { sym =>
       sym.name.toString -> tpe.member(sym.name).asMethod.returnType
     }
   }
@@ -45,7 +45,7 @@ private object NormProcessor {
     val mirror = runtimeMirror(Thread.currentThread().getContextClassLoader)
     val classType = tpe.typeSymbol.asClass
     val cm = mirror.reflectClass(classType)
-    val ctor = tpe.declaration(nme.CONSTRUCTOR).asMethod
+    val ctor = tpe.decl(termNames.CONSTRUCTOR).asMethod
     cm.reflectConstructor(ctor)
   }
 
@@ -141,11 +141,11 @@ class Norm[T: TypeTag](tableName: Option[String] = None) {
     val updateContent = ListBuffer[String]()
     propertiesToUpdate.foreach { prop =>
       updateContent += s"${prop}={${prop}}"
-      val propTerm = tpe.declaration(newTermName(prop)).asTerm
+      val propTerm = tpe.decl(TermName(prop)).asTerm
       defaultAttributes += prop -> (if (attributes.isEmpty) rm.reflect(this).reflectField(propTerm).get else attributes.get(prop).get)
     }
 
-    val idTerm = tpe.declaration(newTermName(NormProcessor.id)).asTerm
+    val idTerm = tpe.decl(TermName(NormProcessor.id)).asTerm
     defaultAttributes += NormProcessor.id -> rm.reflect(this).reflectField(idTerm).get
 
     val updateBuilder = new StringBuilder(s"update ${NormProcessor.tableName[T](tableName)}")
@@ -179,7 +179,7 @@ class Norm[T: TypeTag](tableName: Option[String] = None) {
 //      defaultAttributes = defaultAttributes :+ param
     }
 
-    val idTerm = tpe.declaration(newTermName(NormProcessor.id)).asTerm
+    val idTerm = tpe.decl(TermName(NormProcessor.id)).asTerm
     val propertyValue:Any = rm.reflect(this).reflectField(idTerm).get
     val param: NamedParameter = (NormProcessor.id -> propertyValue)
     val defaultAttributes = attributes :+ param
