@@ -123,61 +123,13 @@ private object NormProcessor {
 class Norm[T: TypeTag](tableName: Option[String] = None) {
 
 
-  /**
-   * Updates a database entry
-   *
-   * @param attributes atrributes to update, default is empty. if empty, updates all fields
-   *                   in the model
-   * @return (TODO) number of the affected rows
-   */
-  def update(attributes: Map[String, Any] = Map()) = {
-    val providedProperties = if (attributes.isEmpty) NormProcessor.constructorProperties[T].map(_._1).toSet else attributes.keys.toSet
-    val propertiesToUpdate = (providedProperties diff Set(NormProcessor.id)).toArray
-    val defaultAttributes = scala.collection.mutable.Map[String, Any]()
+  def update(attributes: NamedParameter*) = {
 
     val rm  = runtimeMirror(this.getClass.getClassLoader)
     val tpe = typeOf[T]
 
     val updateContent = ListBuffer[String]()
-    propertiesToUpdate.foreach { prop =>
-      updateContent += s"${prop}={${prop}}"
-      val propTerm = tpe.decl(TermName(prop)).asTerm
-      defaultAttributes += prop -> (if (attributes.isEmpty) rm.reflect(this).reflectField(propTerm).get else attributes.get(prop).get)
-    }
-
-    val idTerm = tpe.decl(TermName(NormProcessor.id)).asTerm
-    defaultAttributes += NormProcessor.id -> rm.reflect(this).reflectField(idTerm).get
-
-    val updateBuilder = new StringBuilder(s"update ${NormProcessor.tableName[T](tableName)}")
-    updateBuilder.append(" set ")
-    updateBuilder.append(updateContent.mkString(","))
-    updateBuilder.append(s" where ${NormProcessor.id}={${NormProcessor.id}}")
-    val forUpdate = updateBuilder.mkString
-
-    DB.withConnection { implicit c =>
-      val unsafeSeq = defaultAttributes.map{ kv => NamedParameter(kv._1, kv._2) }.toSeq
-      SQL(forUpdate).on(unsafeSeq:_*).executeUpdate()
-    }
-  }
-
-
-
-  def update2(attributes: Seq[NamedParameter] = Seq()) = {
-//    val providedProperties = if (attributes.isEmpty) NormProcessor.constructorProperties[T].map(_._1).toSet else attributes.map(_.name).toSet
-//    val propertiesToUpdate = (providedProperties diff Set(NormProcessor.id)).toArray
-//    var defaultAttributes = Seq[NamedParameter]()
-
-    val rm  = runtimeMirror(this.getClass.getClassLoader)
-    val tpe = typeOf[T]
-
-    val updateContent = ListBuffer[String]()
-    attributes.foreach { prop =>
-      updateContent += s"${prop.name}={${prop.name}}"
-//      val propTerm = tpe.declaration(newTermName(prop)).asTerm
-//      val propertyValue:Any = if (attributes.isEmpty) rm.reflect(this).reflectField(propTerm).get else attributes.find(_.name == prop).get
-//      val param: NamedParameter = (prop -> anorm.Object(propertyValue))
-//      defaultAttributes = defaultAttributes :+ param
-    }
+    attributes.foreach { prop => updateContent += s"${prop.name}={${prop.name}}" }
 
     val idTerm = tpe.decl(TermName(NormProcessor.id)).asTerm
     val propertyValue:Any = rm.reflect(this).reflectField(idTerm).get
@@ -194,13 +146,6 @@ class Norm[T: TypeTag](tableName: Option[String] = None) {
       SQL(forUpdate).on(defaultAttributes:_*).executeUpdate()
     }
   }
-
-  //TODO
-  //  def refresh
-
-  //  def delete
-
-  // ...
 
 }
 
@@ -224,27 +169,7 @@ class NormCompanion[T: TypeTag](tableName: Option[String] = None) {
    * @return
    *   the do for the new database entry
    */
-  def create(attributes: Map[String, Any]): Option[Long] = {
-    val properties = ((attributes.keySet diff Set(NormProcessor.id))).toArray
-    val values     = properties.seq.map(p => s"{${p}}")
-
-    val creationBuilder = new StringBuilder(s"insert into ${NormProcessor.tableName[T](tableName)}")
-    creationBuilder.append(s"(${properties.mkString(",")})")
-    creationBuilder.append(" values ")
-    creationBuilder.append(s"(${values.mkString(",")})")
-    val forCreation = creationBuilder.toString
-
-
-    DB.withConnection { implicit c =>
-      val unsafeSeq = attributes.map{ kv => NamedParameter(kv._1, kv._2) }.toSeq
-      println(forCreation)
-      println(unsafeSeq)
-      println("-------")
-      SQL(forCreation).on(unsafeSeq: _*).executeInsert()
-    }
-  }
-
-  def create2(attributes: Seq[NamedParameter]): Option[Long] = {
+  def create(attributes: NamedParameter*): Option[Long] = {
     val properties = attributes.map(_.name)
     val values     = properties.seq.map(p => s"{${p}}")
 
@@ -257,6 +182,12 @@ class NormCompanion[T: TypeTag](tableName: Option[String] = None) {
     DB.withConnection { implicit c =>
       SQL(forCreation).on(attributes: _*).executeInsert()
     }
+  }
+
+  def searchWith(query: String, onParams: Seq[NamedParameter]) = DB.withConnection { implicit c =>
+    SQL(query).on(onParams:_*)().collect {
+      case r:Row => NormProcessor.instance[T](r, tableName).asInstanceOf[T]
+    }.toList
   }
 
   /**
