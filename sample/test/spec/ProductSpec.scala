@@ -2,7 +2,6 @@ package models.spec
 
 import org.specs2.mutable.Specification
 import play.api.test.WithApplication
-import java.math.BigDecimal
 import play.api.test.FakeApplication
 import models.Product
 
@@ -16,7 +15,7 @@ class ProductSpec extends Specification {
     "create a valid product with name and description" in new WithApplication(FakeApplication()) {
       val productName        = "ProductName"
       val productDescription = Some("Text")
-      val price              = new BigDecimal("10.00")
+      val price              = BigDecimal("10.00")
       val taxRange           = 2
 
       val optionId = Product.create(
@@ -38,7 +37,7 @@ class ProductSpec extends Specification {
 
     "create a valid product with option properties equals to None" in new WithApplication(FakeApplication()) {
       val productName        = "ProductName"
-      val price              = new BigDecimal("11.00")
+      val price              = BigDecimal("11.00")
       val taxRange           = 3
 
       val optionId = Product.create(
@@ -61,7 +60,7 @@ class ProductSpec extends Specification {
 
   "update partially a database entry" in new WithApplication(FakeApplication()) {
     val productName    = "ProductName"
-    val price          = new BigDecimal("11.00")
+    val price          = BigDecimal("11.00")
     val taxRange       = 3
     val description    = Some("description")
     val inStock        = false
@@ -80,7 +79,7 @@ class ProductSpec extends Specification {
     val product = Product.find(optionId.get)
     product.name        = newProductName
     product.description = newDescription
-    product.price       = new BigDecimal("17.00")
+    product.price       = BigDecimal("17.00")
     product.taxRange    = 20
     product.inStock     = true
 
@@ -105,13 +104,13 @@ class ProductSpec extends Specification {
     "perform action in all entries" in new WithApplication(FakeApplication()) {
 
       val productName1    = "ProductName1"
-      val price1          = new BigDecimal("11.00")
+      val price1          = BigDecimal("11.00")
       val taxRange1       = 3
       val description1    = Some("description")
       val inStock1        = false
 
       val productName2    = "ProductName2"
-      val price2          = new BigDecimal("11.00")
+      val price2          = BigDecimal("11.00")
       val taxRange2       = 3
       val description2    = Some("description")
       val inStock2        = false

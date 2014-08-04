@@ -75,6 +75,7 @@ private object NormProcessor {
     val prefix = NormProcessor.tableName[T](tableName).toLowerCase
     properties.foreach { property =>
       normalizedRowValuesMap.get(s"${prefix}.${property._1}".toLowerCase) match {
+        case Some(a: Option[Any]) if property._2 <:< typeOf[BigDecimal] => values += BigDecimal(a.get.asInstanceOf[java.math.BigDecimal])
         case Some(a: Option[Any]) if property._2 <:< typeOf[Option[Any]] => values += a
         case Some(a: Option[Any]) => values += a.get
         case Some(a: Any) => values += a
